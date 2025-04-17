@@ -62,7 +62,7 @@ jobs:
         echo "[web]" > inventory.ini
         
         # Get IPs as JSON array and process with proper error handling
-        PUBLIC_IPS=$(terraform -chdir='../terraform' output -json public_ip_address)
+        PUBLIC_IPS=$(terraform -chdir='../terraform' output -json public_ip_addresses)
         if [[ $? -ne 0 ]]; then
           echo "Error getting public IP addresses from Terraform output"
           exit 1
@@ -79,7 +79,7 @@ jobs:
           IP=$(echo "$PUBLIC_IPS" | jq -r '.')
           echo "$IP ansible_user=$USERNAME ansible_ssh_private_key_file=id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> inventory.ini
         fi
-        
+
         cat inventory.ini | grep -v private_key
 
     - name: Set up Python
