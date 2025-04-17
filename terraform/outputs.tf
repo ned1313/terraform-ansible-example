@@ -4,9 +4,9 @@ output "private_key" {
 }
 
 # Output public IP address
-output "public_ip_address" {
-  value       = azurerm_public_ip.pip.ip_address
-  description = "The public IP address of the VM"
+output "public_ip_addresses" {
+  value       = azurerm_public_ip.pip[*].ip_address
+  description = "The public IP addresses of the VMs in a list"
 }
 
 output "vm_username" {

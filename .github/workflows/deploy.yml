@@ -51,12 +51,36 @@ jobs:
     - name: Create Ansible Inventory and Keys
       working-directory: ansible
       run: |
-        echo "[web]" > inventory.ini
-        echo "$(terraform -chdir='../terraform' output -raw public_ip_address) ansible_user=$(terraform -chdir='../terraform' output -raw vm_username) ansible_ssh_private_key_file=id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> inventory.ini
+        # Create SSH key file with proper permissions first (security best practice)
         echo "$(terraform -chdir='../terraform' output -raw private_key)" > id_rsa
         chmod 600 id_rsa
-        cat inventory.ini
-
+        
+        # Get the admin username once
+        USERNAME=$(terraform -chdir='../terraform' output -raw vm_username || echo "azureuser")
+        
+        # Create inventory header
+        echo "[web]" > inventory.ini
+        
+        # Get IPs as JSON array and process with proper error handling
+        PUBLIC_IPS=$(terraform -chdir='../terraform' output -json public_ip_address)
+        if [[ $? -ne 0 ]]; then
+          echo "Error getting public IP addresses from Terraform output"
+          exit 1
+        fi
+        
+        # Handle both array and single string output formats (resilient approach)
+        if echo "$PUBLIC_IPS" | jq -e 'type == "array"' >/dev/null; then
+          # Process array of IPs
+          for IP in $(echo "$PUBLIC_IPS" | jq -r '.[]'); do
+            echo "$IP ansible_user=$USERNAME ansible_ssh_private_key_file=id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> inventory.ini
+          done
+        else
+          # Handle single IP (not in array)
+          IP=$(echo "$PUBLIC_IPS" | jq -r '.')
+          echo "$IP ansible_user=$USERNAME ansible_ssh_private_key_file=id_rsa ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> inventory.ini
+        fi
+        
+        cat inventory.ini | grep -v private_key
 
     - name: Set up Python
       uses: actions/setup-python@v4

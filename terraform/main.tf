@@ -41,7 +41,8 @@ resource "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_network_interface" "nic" {
-  name                = "${local.prefix}-nic"
+  count               = var.vm_count
+  name                = "${local.prefix}-nic-${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -54,12 +55,13 @@ resource "azurerm_network_interface" "nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.subnet.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.pip.id
+    public_ip_address_id          = azurerm_public_ip.pip[count.index].id
   }
 }
 
 resource "azurerm_public_ip" "pip" {
-  name                = "${local.prefix}-pip"
+  count               = var.vm_count
+  name                = "${local.prefix}-pip-${count.index}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   allocation_method   = "Static"
@@ -70,16 +72,17 @@ resource "azurerm_public_ip" "pip" {
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                            = "${local.prefix}-vm"
+  count                           = var.vm_count
+  name                            = "${local.prefix}-vm-${count.index}"
   resource_group_name             = azurerm_resource_group.rg.name
   location                        = azurerm_resource_group.rg.location
   size                            = var.vm_size
   admin_username                  = var.admin_username
-  computer_name                   = "${local.prefix}-vm"
+  computer_name                   = "${local.prefix}-vm-${count.index}"
   disable_password_authentication = true
 
   network_interface_ids = [
-    azurerm_network_interface.nic.id,
+    azurerm_network_interface.nic[count.index].id,
   ]
 
   admin_ssh_key {
@@ -146,6 +149,7 @@ resource "azurerm_network_security_rule" "allow_http" {
 
 # Associate the NSG with the network interface
 resource "azurerm_network_interface_security_group_association" "nic_nsg_association" {
-  network_interface_id      = azurerm_network_interface.nic.id
+  count                     = var.vm_count
+  network_interface_id      = azurerm_network_interface.nic[count.index].id
   network_security_group_id = azurerm_network_security_group.vm_nsg.id
 }

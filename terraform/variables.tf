@@ -21,3 +21,9 @@ variable "vm_size" {
   description = "Size of the Azure virtual machine"
   default     = "Standard_D2s_v5"
 }
+
+variable "vm_count" {
+  type        = number
+  description = "Number of virtual machines to create"
+  default     = 1
+}
