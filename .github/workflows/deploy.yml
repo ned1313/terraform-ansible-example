@@ -3,6 +3,9 @@ name: Provision Azure and Configure with Ansible
 on:
   push:
     branches: [main]
+    paths:
+      - 'terraform/**'
+      - 'ansible/**'
 
 permissions:
   id-token: write   # Required for OIDC authentication
