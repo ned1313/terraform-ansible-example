@@ -1,0 +1,6 @@
+---
+- name: Configure web server on Azure VM
+  hosts: web
+  become: yes
+  roles:
+    - nginx
