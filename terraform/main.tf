@@ -57,6 +57,10 @@ resource "azurerm_network_interface" "nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.pip[count.index].id
   }
+
+  timeouts {
+    delete = "5m"
+  }
 }
 
 resource "azurerm_public_ip" "pip" {
@@ -117,6 +121,8 @@ resource "azurerm_network_security_group" "vm_nsg" {
     Environment = "Demo"
     ManagedBy   = "Terraform"
   }
+  
+  depends_on = [ azurerm_network_interface.nic ]
 }
 
 resource "azurerm_network_security_rule" "allow_ssh" {
