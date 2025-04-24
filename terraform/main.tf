@@ -19,6 +19,7 @@ resource "azurerm_resource_group" "rg" {
   tags = {
     Environment = "Demo"
     ManagedBy   = "Terraform"
+    IaCConf     = "2025"
   }
 }
 
