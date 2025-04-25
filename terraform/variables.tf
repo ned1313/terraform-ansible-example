@@ -25,5 +25,5 @@ variable "vm_size" {
 variable "vm_count" {
   type        = number
   description = "Number of virtual machines to create"
-  default     = 1
+  default     = 2
 }
